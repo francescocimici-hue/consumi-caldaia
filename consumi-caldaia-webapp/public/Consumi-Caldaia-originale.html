@@ -1,0 +1,548 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Consumi Caldaia</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap">
+<style>
+/* Layout: sidebar di navigazione + area di lavoro; su telefono la navigazione diventa una barra scorrevole in alto.
+   Colore: neutri verdi-grigi (pellet, legno), accento verde pino; l'arancio brace e' riservato alla temperatura. */
+:root{
+  --bg:#f1f4f1; --surface:#ffffff; --surface-2:#e8ede9; --line:#d8dfd9; --fg:#16201a; --muted:#59685f;
+  --accent:#1f6f50; --accent-ink:#ffffff; --accent-soft:#dbebe2; --ember:#c94a1e;
+  --y24:#8a978f; --y25:#4a7cab; --y26:#1f6f50;
+  --good:#1f7a4d; --good-soft:#dcefe3; --warn:#9a5b00; --warn-soft:#f7ebd0;
+  --font-display:'Space Grotesk','Inter',system-ui,sans-serif; --font-body:'Inter',system-ui,-apple-system,'Segoe UI',sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0f1612; --surface:#161f19; --surface-2:#1d2922; --line:#2a372f; --fg:#e5eee8; --muted:#92a398;
+  --accent:#4fbf93; --accent-ink:#06130c; --accent-soft:#1b3a2d; --ember:#ff8057;
+  --y24:#7d8b84; --y25:#6ea3d8; --y26:#4fbf93;
+  --good:#5fd09f; --good-soft:#1b3a2d; --warn:#e8a43a; --warn-soft:#3a2d12; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0f1612; --surface:#161f19; --surface-2:#1d2922; --line:#2a372f; --fg:#e5eee8; --muted:#92a398;
+  --accent:#4fbf93; --accent-ink:#06130c; --accent-soft:#1b3a2d; --ember:#ff8057;
+  --y24:#7d8b84; --y25:#6ea3d8; --y26:#4fbf93;
+  --good:#5fd09f; --good-soft:#1b3a2d; --warn:#e8a43a; --warn-soft:#3a2d12; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--font-body);font-size:14px;line-height:1.5;padding-block:0}
+button,input,select{font:inherit;color:inherit}
+h1,h2,h3{font-family:var(--font-display);margin:0;text-wrap:balance;letter-spacing:-.01em}
+a{color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.app{display:grid;grid-template-columns:232px minmax(0,1fr);min-height:100vh}
+.side{background:var(--surface);border-right:1px solid var(--line);padding:20px 16px;display:flex;flex-direction:column;gap:24px;position:sticky;top:0;height:100vh;align-self:start}
+.brand{display:flex;align-items:center;gap:10px;font-family:var(--font-display);font-weight:700;font-size:17px;letter-spacing:-.01em}
+.brand svg{flex:none}
+.brand small{display:block;font:500 11px var(--font-body);color:var(--muted);letter-spacing:0}
+nav{display:flex;flex-direction:column;gap:2px}
+nav a{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:6px;text-decoration:none;color:var(--muted);font-weight:500}
+nav a svg{flex:none;width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+nav a:hover{background:var(--surface-2);color:var(--fg)}
+nav a[aria-current="page"]{background:var(--accent-soft);color:var(--accent)}
+.imp{margin-top:auto;font-size:12px;color:var(--muted);border-top:1px solid var(--line);padding-top:14px;display:flex;flex-direction:column;gap:6px}
+.imp b{color:var(--fg);font-weight:600}
+.main{min-width:0;padding-block:28px 56px;padding-left:max(24px,env(safe-area-inset-left,0px));padding-right:max(24px,env(safe-area-inset-right,0px))}
+.wrap{max-width:1080px;margin:0 auto;display:flex;flex-direction:column;gap:20px}
+.wrap[hidden]{display:none}
+.head{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px}
+.head h1{font-size:26px;line-height:1.15}
+.head p{margin:2px 0 0;color:var(--muted)}
+.tools{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.seg{display:inline-flex;background:var(--surface-2);border-radius:8px;padding:3px;gap:2px}
+.seg button{border:0;background:transparent;padding:5px 12px;border-radius:6px;cursor:pointer;color:var(--muted);font-weight:500}
+.seg button[aria-pressed="true"]{background:var(--surface);color:var(--fg);box-shadow:0 1px 2px rgba(0,0,0,.12)}
+.btn{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--line);background:var(--surface);padding:8px 14px;border-radius:8px;cursor:pointer;font-weight:500;text-decoration:none}
+.btn:hover{border-color:var(--muted)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn.primary:hover{filter:brightness(1.08)}
+.btn.sm{padding:4px 10px;font-size:13px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:18px;min-width:0}
+.card h2{font-size:16px}
+.card .sub{color:var(--muted);font-size:13px;margin:2px 0 0}
+.card-head{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:14px}
+.kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.kpi{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 16px;display:flex;flex-direction:column;gap:4px;min-width:0}
+.kpi .l{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;font-weight:500}
+.kpi .v{font-family:var(--font-display);font-size:28px;font-weight:600;line-height:1.1;font-variant-numeric:tabular-nums}
+.kpi .v small{font-size:14px;color:var(--muted);font-weight:500;margin-left:3px}
+.delta{font-size:12px;display:inline-flex;gap:6px;align-items:center;color:var(--muted)}
+.pill{display:inline-block;padding:1px 8px;border-radius:99px;font-weight:600;font-size:12px;font-variant-numeric:tabular-nums}
+.pill.up{background:var(--warn-soft);color:var(--warn)}
+.pill.down{background:var(--good-soft);color:var(--good)}
+.pill.flat{background:var(--surface-2);color:var(--muted)}
+.cols{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:20px}
+.cols.even{grid-template-columns:repeat(2,minmax(0,1fr))}
+.legend{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:13px;color:var(--muted)}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:6px;vertical-align:-1px}
+.legend i.ln{height:3px;border-radius:2px;vertical-align:3px;width:14px}
+.chart{width:100%}
+.chart svg{display:block;width:100%;height:auto;overflow:visible}
+.ax{fill:var(--muted);font:11px var(--font-body);font-variant-numeric:tabular-nums}
+.axe{fill:var(--ember);font:11px var(--font-body);font-variant-numeric:tabular-nums}
+.gl{stroke:var(--line);stroke-width:1}
+.tw{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-variant-numeric:tabular-nums}
+th{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:500;text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);white-space:nowrap}
+td{padding:9px 10px;border-bottom:1px solid var(--line);white-space:nowrap}
+tr:last-child td{border-bottom:0}
+th.r,td.r{text-align:right}
+td.mut{color:var(--muted)}
+.tag{display:inline-block;padding:1px 8px;border-radius:99px;background:var(--surface-2);font-size:12px;font-weight:500}
+.list{display:flex;flex-direction:column}
+.row{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--line)}
+.row:last-child{border-bottom:0}
+.row .t{font-weight:500}
+.row .s{font-size:12px;color:var(--muted)}
+.row .n{text-align:right;font-variant-numeric:tabular-nums}
+.alert{display:flex;gap:10px;align-items:flex-start;padding:10px 12px;border-radius:8px;background:var(--warn-soft);color:var(--fg);margin-top:10px;font-size:13px}
+.alert svg{flex:none;width:16px;height:16px;margin-top:2px;stroke:var(--warn);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.alert.info{background:var(--surface-2)}
+.alert.info svg{stroke:var(--muted)}
+.form{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:12px;align-items:end}
+.field{display:flex;flex-direction:column;gap:4px;min-width:0}
+.field.w2{grid-column:span 2}
+.field label{font-size:12px;font-weight:500;color:var(--muted)}
+.field input,.field select{border:1px solid var(--line);background:var(--bg);border-radius:8px;padding:8px 10px;width:100%;min-width:0}
+.field input:focus,.field select:focus{border-color:var(--accent)}
+.step{display:flex;gap:6px}
+.step input{text-align:center;font-variant-numeric:tabular-nums}
+.step button{flex:none;width:36px;border:1px solid var(--line);background:var(--surface-2);border-radius:8px;cursor:pointer;font-size:18px;line-height:1}
+.step button:hover{border-color:var(--muted)}
+.formfoot{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:12px;margin-top:14px;padding-top:14px;border-top:1px solid var(--line)}
+.calc{color:var(--muted)}
+.calc b{font-family:var(--font-display);color:var(--fg);font-size:18px;font-variant-numeric:tabular-nums}
+.err{color:var(--warn);font-size:13px;min-height:1em}
+.bar{height:10px;border-radius:99px;background:var(--surface-2);overflow:hidden}
+.bar i{display:block;height:100%;background:var(--accent);border-radius:99px}
+.big{font-family:var(--font-display);font-size:34px;font-weight:600;line-height:1.1;font-variant-numeric:tabular-nums}
+.big small{font-size:15px;color:var(--muted);font-weight:500}
+.heat td.c{text-align:right}
+.ev{display:flex;gap:12px;padding:8px 0;border-bottom:1px solid var(--line)}
+.ev:last-child{border-bottom:0}
+.ev time{flex:none;width:96px;color:var(--muted);font-size:13px}
+.note{font-size:12px;color:var(--muted)}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(20px + env(safe-area-inset-bottom,0px));background:var(--fg);color:var(--bg);padding:9px 16px;border-radius:8px;font-weight:500;opacity:0;pointer-events:none;transition:opacity .2s;z-index:20}
+.toast.on{opacity:1}
+@media (max-width:900px){
+  .app{grid-template-columns:minmax(0,1fr)}
+  .side{position:static;height:auto;flex-direction:row;align-items:center;gap:12px;padding:10px max(16px,env(safe-area-inset-right,0px)) 10px max(16px,env(safe-area-inset-left,0px));border-right:0;border-bottom:1px solid var(--line);flex-wrap:wrap}
+  nav{flex-direction:row;overflow-x:auto;max-width:100%}
+  nav a{padding:7px 10px;white-space:nowrap}
+  .imp{display:none}
+  .main{padding-block:20px 48px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+  .kpis{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .cols,.cols.even{grid-template-columns:minmax(0,1fr)}
+  .form{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .field.w2{grid-column:span 2}
+}
+@media (max-width:430px){.kpi .v{font-size:24px}.head h1{font-size:22px}}
+@media (prefers-reduced-motion:reduce){.toast{transition:none}}
+</style>
+
+<div class="app">
+  <aside class="side">
+    <div class="brand">
+      <svg width="30" height="30" viewBox="0 0 30 30" aria-hidden="true"><rect width="30" height="30" rx="8" fill="var(--accent)"/><g fill="var(--accent-ink)"><rect x="7" y="9" width="7" height="4" rx="2"/><rect x="16" y="9" width="7" height="4" rx="2" opacity=".7"/><rect x="11" y="15" width="8" height="4" rx="2"/><rect x="6" y="21" width="7" height="3" rx="1.5" opacity=".7"/><rect x="15" y="21" width="9" height="3" rx="1.5"/></g></svg>
+      <span>Consumi Caldaia<small>Caldaia a pellet</small></span>
+    </div>
+    <nav aria-label="Sezioni">
+      <a href="#panoramica" data-v="panoramica"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg>Panoramica</a>
+      <a href="#registro" data-v="registro"><svg viewBox="0 0 24 24"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>Registro</a>
+      <a href="#analisi" data-v="analisi"><svg viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M7 15l4-5 3 3 5-7"/></svg>Analisi</a>
+      <a href="#scorte" data-v="scorte"><svg viewBox="0 0 24 24"><path d="M21 8l-9-5-9 5 9 5 9-5z"/><path d="M3 8v8l9 5 9-5V8"/><path d="M12 13v8"/></svg>Scorte</a>
+    </nav>
+    <div class="imp">
+      <span>Importato da <b>consumi_caldaia.xlsx</b></span>
+      <span id="impInfo"></span>
+      <span>Mockup: le modifiche restano solo finche' la pagina e' aperta.</span>
+    </div>
+  </aside>
+
+  <main class="main">
+    <!-- PANORAMICA -->
+    <section id="v-panoramica" class="wrap">
+      <div class="head">
+        <div><h1>Panoramica</h1><p id="pSub"></p></div>
+        <div class="tools">
+          <div class="seg" id="yearSeg" role="group" aria-label="Anno"></div>
+          <a class="btn primary" href="#registro" id="goNew">+ Nuova registrazione</a>
+        </div>
+      </div>
+      <div class="kpis" id="kpis"></div>
+      <div class="card">
+        <div class="card-head">
+          <div><h2 id="mTitle">Consumi mensili</h2><p class="sub">Confronto tra stagioni, mese per mese</p></div>
+          <div class="tools">
+            <div class="seg" id="metricSeg" role="group" aria-label="Misura">
+              <button type="button" data-m="bal" aria-pressed="true">Ballini</button>
+              <button type="button" data-m="sp" aria-pressed="false">Spesa</button>
+            </div>
+            <div class="seg" id="tempSeg" role="group" aria-label="Temperatura"><button type="button" id="tempBtn" aria-pressed="false">Temperatura</button></div>
+          </div>
+        </div>
+        <div class="legend" id="legend1"></div>
+        <div class="chart" id="chart1"></div>
+      </div>
+      <div class="cols">
+        <div class="card">
+          <div class="card-head"><div><h2>Ultime registrazioni</h2></div><a class="btn sm" href="#registro">Apri il registro</a></div>
+          <div class="list" id="recent"></div>
+        </div>
+        <div class="card" id="pAlerts"></div>
+      </div>
+    </section>
+
+    <!-- REGISTRO -->
+    <section id="v-registro" class="wrap" hidden>
+      <div class="head"><div><h1>Registro</h1><p>Ogni carico di ballini. Progressivi e spesa si calcolano da soli.</p></div></div>
+      <form class="card" id="form" novalidate>
+        <div class="card-head"><div><h2>Nuova registrazione</h2><p class="sub">Il prezzo si compila con l'ultimo usato per quel pellet.</p></div></div>
+        <div class="form">
+          <div class="field"><label for="fData">Data</label><input type="date" id="fData" required></div>
+          <div class="field"><label for="fOra">Ora (facoltativa)</label><input type="time" id="fOra"></div>
+          <div class="field"><label for="fBal">Ballini</label>
+            <div class="step"><button type="button" id="bMinus" aria-label="Un ballino in meno">&minus;</button><input type="number" id="fBal" min="1" step="1" value="2" inputmode="numeric"><button type="button" id="bPlus" aria-label="Un ballino in piu'">+</button></div></div>
+          <div class="field"><label for="fTipo">Tipo pellet</label><select id="fTipo"></select></div>
+          <div class="field"><label for="fCosto">Costo a ballino (&euro;)</label><input type="number" id="fCosto" min="0" step="0.01" inputmode="decimal"></div>
+          <div class="field"><label for="fNota">Nota (facoltativa)</label><input type="text" id="fNota" placeholder="es. nuovo bancale"></div>
+          <div class="field w2" id="newTipoWrap" hidden><label for="fNewTipo">Nome del nuovo pellet</label><input type="text" id="fNewTipo" placeholder="es. Pellet Alpino"></div>
+        </div>
+        <div class="formfoot">
+          <div class="calc">Spesa di questa registrazione <b id="calc">&euro; 0,00</b><div class="err" id="err" role="alert"></div></div>
+          <button type="submit" class="btn primary">Salva registrazione</button>
+        </div>
+      </form>
+      <div class="card">
+        <div class="card-head">
+          <div><h2>Storico</h2><p class="sub" id="histSub"></p></div>
+          <div class="tools">
+            <div class="field"><label for="fAnno" class="note">Anno</label><select id="fAnno"></select></div>
+            <div class="field"><label for="fFiltroTipo" class="note">Pellet</label><select id="fFiltroTipo"></select></div>
+          </div>
+        </div>
+        <div class="tw"><table id="tbl"></table></div>
+        <div style="margin-top:12px;display:flex;justify-content:center"><button type="button" class="btn sm" id="more">Mostra altre</button></div>
+      </div>
+      <div class="card">
+        <div class="card-head"><div><h2>Eventi della stagione</h2><p class="sub">Accensioni, cambi di bancale e di pellet.</p></div></div>
+        <div id="events"></div>
+      </div>
+    </section>
+
+    <!-- ANALISI -->
+    <section id="v-analisi" class="wrap" hidden>
+      <div class="head"><div><h1>Analisi</h1><p>Il foglio "Analisi" dell'Excel, sempre aggiornato.</p></div></div>
+      <div class="cols even">
+        <div class="card">
+          <div class="card-head"><div><h2>Spesa progressiva</h2><p class="sub">Euro accumulati da gennaio, per anno</p></div></div>
+          <div class="legend" id="legend2"></div>
+          <div class="chart" id="chart2"></div>
+        </div>
+        <div class="card">
+          <div class="card-head"><div><h2>Consumo e temperatura</h2><p class="sub">Un punto per ogni mese con T media nota</p></div></div>
+          <div class="legend" id="legend3"></div>
+          <div class="chart" id="chart3"></div>
+          <div class="alert info" id="regr"></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-head">
+          <div><h2>Mese per mese</h2><p class="sub">Confronto tra le stagioni, con la media della temperatura</p></div>
+          <div class="seg" id="tblSeg" role="group" aria-label="Misura tabella">
+            <button type="button" data-m="bal" aria-pressed="true">Ballini</button>
+            <button type="button" data-m="sp" aria-pressed="false">Spesa</button>
+          </div>
+        </div>
+        <div class="tw"><table class="heat" id="heat"></table></div>
+      </div>
+      <div class="card">
+        <div class="card-head"><div><h2>Costo per tipo di pellet</h2><p class="sub">Costo medio pesato sui ballini acquistati</p></div></div>
+        <div class="tw"><table id="types"></table></div>
+      </div>
+    </section>
+
+    <!-- SCORTE -->
+    <section id="v-scorte" class="wrap" hidden>
+      <div class="head"><div><h1>Scorte</h1><p>Quanto pellet resta e fino a quando dura.</p></div></div>
+      <div class="cols">
+        <div class="card">
+          <div class="card-head"><div><h2>Giacenza stimata</h2><p class="sub">Ballini acquistati meno ballini registrati dopo il primo acquisto</p></div></div>
+          <div class="big" id="giac"></div>
+          <div class="bar" style="margin:14px 0 8px"><i id="giacBar" style="width:0"></i></div>
+          <div class="note" id="giacNote"></div>
+          <div class="alert info" id="runout"></div>
+        </div>
+        <form class="card" id="formAcq" novalidate>
+          <div class="card-head"><div><h2>Registra un acquisto</h2><p class="sub">Esempio gia' inserito, sostituiscilo con il tuo.</p></div></div>
+          <div class="form" style="grid-template-columns:repeat(2,minmax(0,1fr))">
+            <div class="field"><label for="aData">Data</label><input type="date" id="aData" required></div>
+            <div class="field"><label for="aBal">Ballini</label><input type="number" id="aBal" min="1" step="1" value="78"></div>
+            <div class="field"><label for="aTipo">Tipo pellet</label><select id="aTipo"></select></div>
+            <div class="field"><label for="aCosto">Costo a ballino (&euro;)</label><input type="number" id="aCosto" min="0" step="0.01"></div>
+          </div>
+          <div class="formfoot"><span class="err" id="aErr" role="alert"></span><button class="btn primary" type="submit">Aggiungi acquisto</button></div>
+        </form>
+      </div>
+      <div class="card">
+        <div class="card-head"><div><h2>Acquisti</h2></div></div>
+        <div class="tw"><table id="acq"></table></div>
+      </div>
+    </section>
+  </main>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+const DATA=[["2024-01-10","17:00",4,"pino cianelli",5.5],["2024-01-11","08:00",1,"pino cianelli",5.5],["2024-01-12","08:00",1,"faggio cianelli",5.5],["2024-01-13","13:00",1,"faggio cianelli",5.5],["2024-01-14","13:00",1,"faggio cianelli",5.5],["2024-01-15","08:00",1,"faggio cianelli",5.5],["2024-01-15","20:00",1,"faggio cianelli",5.5],["2024-01-17","08:00",1,"pino cianelli",5.5],["2024-01-18","08:00",1,"pino cianelli",5.5],["2024-01-19","08:00",1,"pino cianelli",5.5],["2024-01-21","11:00",1,"pino cianelli",5.5],["2024-01-22","08:00",1,"pino cianelli",5.5],["2024-01-23","08:00",1,"pino cianelli",5.5],["2024-01-24","08:00",1,"pino cianelli",5.5],["2024-01-25","08:00",1,"pino cianelli",5.5],["2024-01-26","08:00",1,"pino obi",5.15],["2024-01-27","10:00",1,"pino obi",5.15],["2024-01-28","11:00",2,"pino obi",5.15],["2024-01-29","22:00",1,"pino cianelli",5.5],["2024-01-30","20:00",1,"pino cianelli",5.5],["2024-01-31","20:00",1,"pino cianelli",5.5],["2024-02-01","08:00",1,"pino cianelli",5.5],["2024-02-01","23:00",1,"pino cianelli",5.5],["2024-02-02","08:00",1,"pino cianelli",5.5],["2024-02-02","23:00",1,"pino cianelli",5.5],["2024-02-03","18:00",1,"mammut",4.5],["2024-02-04","16:00",1,"mammut",4.5],["2024-02-05","20:00",3,"mammut",4.5],["2024-02-08","20:00",3,"mammut",4.5],["2024-02-13","08:00",3,"mammut",4.5],["2024-02-16","19:00",2,"mammut",4.5],["2024-02-20","23:00",2,"mammut",4.5],["2024-02-23","18:00",2,"mammut",4.3],["2024-02-25","20:00",2,"mammut",4.3],["2024-02-28","20:00",2,"mammut",4.3],["2024-03-02","16:00",2,"mammut",4.3],["2024-03-06","20:00",2,"mammut",4.3],["2024-03-08","20:00",3,"mammut",4.3],["2024-03-12","08:00",2,"mammut",4.3],["2024-03-15","08:00",2,"mammut",4.3],["2024-03-19","22:00",1,"mammut",4.3],["2024-03-23","08:00",3,"mammut",4.3],["2024-03-31","11:00",1,"mammut",4.3],["2024-04-03","22:00",1,"mammut",4.3],["2024-04-06","11:00",1,"mammut",4.3],["2024-04-09","14:00",1,"mammut",4.3],["2024-04-11","22:00",2,"mammut",4.3],["2024-04-19","13:00",1,"mammut",4.3],["2024-04-25","10:00",1,"mammut",4.3],["2024-04-27","10:00",1,"mammut",4.3],["2024-05-02","10:00",1,"mammut",4.3],["2024-05-04","10:00",1,"mammut",4.3],["2024-05-10","10:00",2,"mammut",4.3],["2024-05-17","20:00",2,"mammut",4.3],["2024-05-23","08:00",1,"mammut",4.3],["2024-05-27","20:00",1,"mammut",4.3],["2024-06-01","10:00",2,"mammut",4.3],["2024-06-06","10:00",2,"mammut",4.3],["2024-06-15","22:00",1,"mammut",4.3],["2024-06-22","10:00",1,"mammut",4.3],["2024-06-28","20:00",1,"mammut",4.3],["2024-07-05","10:00",3,"mammut",4.3],["2024-08-02","10:00",1,"mammut",4.3],["2024-08-10","10:00",1,"mammut",4.3],["2024-08-15","10:00",2,"mammut",4.3],["2024-08-22","10:00",1,"mammut",4.3],["2024-08-26","10:00",1,"mammut",4.3],["2024-09-02","10:00",2,"mammut",4.3],["2024-09-11",null,1,"mammut",4.3],["2024-09-16",null,2,"mammut",4.3],["2024-09-20",null,1,"mammut",4.3],["2024-09-26",null,1,"mammut",4.3],["2024-09-28",null,1,"mammut",4.3],["2024-10-02",null,1,"mammut",4.3],["2024-10-05",null,3,"mammut",4.3],["2024-10-19",null,3,"mammut",4.3],["2024-10-29",null,1,"mammut",4.3],["2024-11-03",null,3,"mammut",4.3],["2024-11-13",null,3,"mammut",4.3],["2024-11-17",null,2,"drvuni",4.3],["2024-11-21",null,3,"drvuni",4.3],["2024-11-23",null,1,"drvuni",4.3],["2024-11-25",null,1,"drvuni",4.3],["2024-11-27",null,3,"drvuni",4.3],["2024-11-30",null,2,"drvuni",4.3],["2024-12-03",null,2,"drvuni",4.3],["2024-12-05",null,2,"drvuni",4.3],["2024-12-07",null,2,"drvuni",4.3],["2024-12-10",null,3,"drvuni",4.3],["2024-12-13",null,1,"mammut",4.3],["2024-12-14",null,3,"drvuni",4.3],["2024-12-17",null,3,"drvuni",4.3],["2024-12-19",null,1,"drvuni",4.3],["2024-12-21",null,3,"drvuni",4.3],["2024-12-24",null,3,"drvuni",4.3],["2024-12-27",null,3,"drvuni",4.3],["2024-12-29",null,1,"drvuni",4.3],["2024-12-30",null,3,"drvuni",4.3],["2025-01-01",null,1,"drvuni",4.3],["2025-01-02",null,1,"drvuni",4.3],["2025-01-03",null,3,"drvuni",4.3],["2025-01-06",null,2,"drvuni",4.3],["2025-01-08",null,2,"drvuni",4.3],["2025-01-11",null,2,"drvuni",4.3],["2025-01-13",null,1,"drvuni",4.3],["2025-01-15",null,2,"drvuni",4.3],["2025-01-16",null,2,"drvuni",4.3],["2025-01-18",null,3,"drvuni",4.3],["2025-01-21",null,2,"drvuni",4.3],["2025-01-23",null,1,"drvuni",4.3],["2025-01-25",null,3,"drvuni",4.3],["2025-01-29",null,2,"drvuni",4.3],["2025-02-01",null,2,"drvuni",4.3],["2025-02-03",null,1,"drvuni",4.3],["2025-02-06",null,2,"mammut",4.3],["2025-02-08",null,3,"mammut",4.3],["2025-02-12",null,3,"mammut",4.3],["2025-02-16",null,3,"mammut",4.3],["2025-02-19",null,2,"mammut",4.3],["2025-02-21",null,3,"mammut",4.3],["2025-02-24",null,1,"mammut",4.3],["2025-02-26",null,1,"mammut",4.3],["2025-03-02",null,1,"mammut",4.3],["2025-03-03",null,1,"mammut",4.3],["2025-03-05",null,1,"mammut",4.3],["2025-03-08",null,3,"mammut",4.3],["2025-03-10",null,1,"mammut",4.3],["2025-03-15",null,3,"mammut",4.3],["2025-03-19",null,1,"mammut",4.3],["2025-03-21",null,3,"mammut",4.3],["2025-03-25",null,2,"mammut",4.3],["2025-03-29",null,2,"mammut",4.3],["2025-04-02",null,3,"mammut",4.3],["2025-04-05",null,1,"mammut",4.3],["2025-04-12",null,3,"mammut",4.3],["2025-04-17",null,1,"mammut",4.3],["2025-04-19",null,1,"mammut",4.3],["2025-04-23",null,1,"mammut",4.3],["2025-04-27",null,3,"mammut",4.3],["2025-05-09",null,3,"mammut",4.3],["2025-05-13",null,1,"mammut",4.3],["2025-05-24",null,3,"mammut",4.3],["2025-06-02",null,2,"mammut",4.3],["2025-06-16",null,3,"mammut",4.3],["2025-07-03",null,2,"mammut",4.3],["2025-07-19",null,3,"mammut",4.3],["2025-08-03",null,3,"mammut",4.3],["2025-08-20",null,3,"mammut",4.3],["2025-09-06",null,1,"mammut",4.3],["2025-09-17",null,3,"mammut",4.3],["2025-09-29",null,1,"mammut",4.23],["2025-10-02",null,2,"mammut",4.23],["2025-10-11",null,3,"mammut",4.23],["2025-10-24",null,3,"mammut",4.23],["2025-11-02",null,2,"mammut",4.23],["2025-11-08",null,3,"mammut",4.23],["2025-11-15",null,2,"mammut",4.23],["2025-11-20",null,2,"mammut",4.23],["2025-11-23",null,2,"mammut",4.23],["2025-11-26",null,2,"mammut",4.23],["2025-11-29",null,2,"mammut",4.23],["2025-11-30",null,2,"mammut",4.23],["2025-12-02",null,2,"mammut",4.23],["2025-12-04",null,3,"mammut",4.23],["2025-12-06",null,1,"mammut",4.23],["2025-12-08",null,2,"mammut",4.23],["2025-12-11",null,3,"mammut",4.23],["2025-12-14",null,3,"mammut",4.23],["2025-12-16",null,3,"mammut",4.23],["2025-12-18",null,1,"mammut",4.23],["2025-12-20",null,3,"mammut",4.23],["2025-12-23",null,1,"mammut",4.23],["2025-12-24",null,2,"mammut",4.23],["2025-12-26",null,1,"mammut",4.23],["2025-12-27",null,1,"mammut",4.23],["2025-12-28",null,1,"mammut",4.23],["2025-12-29",null,2,"mammut",4.23],["2025-12-31",null,3,"mammut",4.23],["2026-01-02",null,2,"mammut",4.23],["2026-01-03",null,1,"mammut",4.23],["2026-01-04",null,1,"mammut",4.23],["2026-01-06",null,3,"mammut",4.23],["2026-01-08",null,3,"mammut",4.23],["2026-01-11",null,3,"mammut",4.23],["2026-01-13",null,3,"mammut",4.23],["2026-01-14",null,1,"mammut",4.23],["2026-01-16",null,1,"mammut",4.23],["2026-01-17",null,2,"mammut",4.23],["2026-01-20",null,3,"mammut",5.2],["2026-01-22",null,1,"mammut",5.2],["2026-01-24",null,3,"mammut",5.2],["2026-01-28",null,3,"mammut",5.2],["2026-01-31",null,2,"mammut",5.2],["2026-02-02",null,2,"mammut",5.2],["2026-02-04",null,3,"mammut",5.2],["2026-02-07",null,1,"mammut",5.2],["2026-02-08",null,1,"mammut",5.2],["2026-02-11",null,3,"mammut",5.2],["2026-02-15",null,2,"mammut",5.2],["2026-02-18",null,3,"mammut",5.2],["2026-02-21",null,2,"mammut",5.2],["2026-02-24",null,2,"mammut",5.2],["2026-02-27",null,1,"mammut",5.2],["2026-03-02",null,1,"mammut",5.2],["2026-03-03",null,1,"mammut",5.2],["2026-03-06",null,2,"mammut",5.2],["2026-03-11",null,3,"mammut",5.2],["2026-03-17",null,2,"flo pellet",5.2],["2026-03-21",null,3,"flo pellet",5.2],["2026-03-25",null,3,"flo pellet",5.2],["2026-03-29",null,3,"flo pellet",5.2],["2026-04-02",null,3,"flo pellet",5.2],["2026-04-06",null,3,"flo pellet",5.2],["2026-04-13",null,3,"flo pellet",5.2],["2026-04-23",null,1,"flo pellet",5.2],["2026-04-29",null,2,"flo pellet",5.2],["2026-05-06",null,1,"flo pellet",5.2],["2026-05-09",null,1,"flo pellet",5.2],["2026-05-14",null,2,"flo pellet",5.2],["2026-05-23",null,3,"flo pellet",5.2],["2026-06-03",null,3,"flo pellet",5.2],["2026-06-21",null,3,"flo pellet",5.2],["2026-07-06",null,3,"flo pellet",5.2],["2026-07-25",null,3,"mammut",5.8],["2026-08-23",null,3,"mammut",5.8],["2026-09-12",null,3,"mammut",5.8],["2026-09-26",null,3,"mammut",5.8],["2026-10-10",null,3,"mammut",5.8],["2026-10-17",null,2,"mammut",5.8],["2026-10-28",null,2,"mammut",5.8],["2026-11-04",null,3,"mammut",5.8]];
+const TEMPS={"2024-01": 7.98, "2024-02": 10.82, "2024-03": 13.32, "2024-04": 16.37, "2024-05": 18.04, "2024-06": 23.43, "2024-07": 28.5, "2024-08": 28.25, "2024-09": 20.6, "2024-10": 16.4, "2024-11": 10, "2024-12": 6.36, "2025-02": 8.19, "2025-03": 12.65, "2025-06": 24.57, "2025-07": 26.18, "2025-08": 25.23, "2025-09": 21.38, "2025-10": 15.52, "2025-11": 10.1, "2025-12": 5.88, "2026-01": 6.98, "2026-02": 11.91, "2026-03": 11.93, "2026-04": 15.19, "2026-05": 18.84, "2026-06": 26.05};
+const EVENTS=[["2024-11-17","Accesi i termosifoni"],["2025-09-29","Avvio nuovo bancale"],["2025-11-15","Accesi i termosifoni"],["2026-01-20","Inizio nuovo bancale da 78 ballini (mezzo Mammut, mezzo Flo)"],["2026-03-11","Finito il Mammut"],["2026-03-17","Avvio Flo"]];
+const MESI=['gen','feb','mar','apr','mag','giu','lug','ago','set','ott','nov','dic'];
+const MESI_L=['gennaio','febbraio','marzo','aprile','maggio','giugno','luglio','agosto','settembre','ottobre','novembre','dicembre'];
+const YEARS=[2024,2025,2026];
+const YC={2024:'var(--y24)',2025:'var(--y25)',2026:'var(--y26)'};
+const TODAY=new Date();
+const iso=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+const TODAY_ISO=iso(TODAY);
+const $=s=>document.querySelector(s);
+const $$=s=>[...document.querySelectorAll(s)];
+const nf=(n,d=0)=>n.toLocaleString('it-IT',{minimumFractionDigits:d,maximumFractionDigits:d});
+const eur=(n,d=2)=>'€ '+nf(n,d);
+const fd=d=>new Date(d+'T00:00').toLocaleDateString('it-IT',{day:'numeric',month:'short',year:'numeric'});
+const fdShort=d=>new Date(d+'T00:00').toLocaleDateString('it-IT',{day:'numeric',month:'short'});
+const yr=d=>+d.slice(0,4), mo=d=>+d.slice(5,7)-1;
+const cap=s=>s.charAt(0).toUpperCase()+s.slice(1);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const dim=(y,m)=>new Date(y,m+1,0).getDate();
+
+let recs=DATA.map((r,i)=>({id:i,d:r[0],h:r[1],b:r[2],t:r[3],c:r[4]}));
+let nextId=recs.length;
+let events=EVENTS.map(e=>({d:e[0],n:e[1]}));
+let acquisti=[{d:'2026-09-20',b:78,t:'mammut',c:5.8,ex:true}];
+const sortRecs=()=>recs.sort((a,b)=>(a.d+(a.h||'00:00')).localeCompare(b.d+(b.h||'00:00'))||a.id-b.id);
+sortRecs();
+const spesa=r=>r.b*r.c;
+const label=t=>t.split(' ').map(cap).join(' ');
+
+let selYear=Math.max(...YEARS.filter(y=>y<=TODAY.getFullYear()),2026);
+if(!YEARS.includes(selYear))selYear=2026;
+let metric='bal', showTemp=false, tblMetric='bal', rowsShown=14;
+
+function monthly(y){const bal=Array(12).fill(0),sp=Array(12).fill(0);recs.forEach(r=>{if(yr(r.d)===y){bal[mo(r.d)]+=r.b;sp[mo(r.d)]+=spesa(r)}});return{bal,sp}}
+function tempOf(y,m){const v=TEMPS[y+'-'+String(m+1).padStart(2,'0')];return v===undefined?null:v}
+function cutoff(y){return y===TODAY.getFullYear()?TODAY_ISO.slice(5):'12-31'}
+function period(y){const c=cutoff(y);let b=0,s=0;recs.forEach(r=>{if(yr(r.d)===y&&r.d.slice(5)<=c){b+=r.b;s+=spesa(r)}});const dt=new Date(y+'-'+c+'T00:00'),d0=new Date(y+'-01-01T00:00');return{b,s,days:Math.round((dt-d0)/864e5)+1}}
+function deltaPill(cur,prev,fmt){if(!prev)return'';const p=(cur-prev)/prev*100;const cls=Math.abs(p)<1?'flat':p>0?'up':'down';const ar=Math.abs(p)<1?'=':p>0?'▲':'▼';return`<span class="pill ${cls}">${ar} ${nf(Math.abs(p))}%</span>`}
+
+/* ---------- Panoramica ---------- */
+function renderYearSeg(){$('#yearSeg').innerHTML=YEARS.map(y=>`<button type="button" data-y="${y}" aria-pressed="${y===selYear}">${y}</button>`).join('')}
+function renderKpis(){
+  const cur=period(selYear),prev=period(selYear-1);
+  const hasPrev=YEARS.includes(selYear-1);
+  const avg=cur.b?cur.s/cur.b:0,pavg=prev.b?prev.s/prev.b:0;
+  const dly=cur.b/cur.days,pdly=prev.b/prev.days;
+  const when=selYear===TODAY.getFullYear()?`fino al ${fdShort(TODAY_ISO)}`:'anno completo';
+  const vs=hasPrev?`vs ${selYear-1} ${selYear===TODAY.getFullYear()?'allo stesso giorno':''}`:'';
+  const k=(l,v,u,a,b)=>`<div class="kpi"><span class="l">${l}</span><span class="v">${v}<small>${u}</small></span><span class="delta">${hasPrev?deltaPill(a,b)+'<span>'+vs+'</span>':'<span>primo anno registrato</span>'}</span></div>`;
+  $('#kpis').innerHTML=k('Ballini',nf(cur.b),'',cur.b,prev.b)+k('Spesa',eur(cur.s,0),'',cur.s,prev.s)+k('Costo medio',eur(avg),'/ballino',avg,pavg)+k('Consumo medio',nf(dly,2),'ballini/giorno',dly,pdly);
+  $('#pSub').textContent=`Stagione ${selYear}, ${when}`;
+}
+const niceTicks=(max,n=4)=>{if(max<=0)return{top:1,t:[0,1]};const raw=max/n,mag=10**Math.floor(Math.log10(raw)),f=raw/mag,s=(f<=1?1:f<=2?2:f<=5?5:10)*mag,top=Math.ceil(max/s)*s,t=[];for(let v=0;v<=top+1e-9;v+=s)t.push(+v.toFixed(6));return{top,t}};
+function chart1(){
+  const el=$('#chart1'),W=Math.max(el.clientWidth,300),H=W<520?240:280;
+  const L=40,R=showTemp?38:10,T=12,B=26,pw=W-L-R,ph=H-T-B;
+  const series=YEARS.map(y=>({y,v:monthly(y)[metric]}));
+  const {top,t}=niceTicks(Math.max(...series.flatMap(s=>s.v)));
+  const ys=v=>T+ph-v/top*ph, gw=pw/12, bw=Math.min(14,(gw-6)/3);
+  let g='';
+  t.forEach(v=>{g+=`<line class="gl" x1="${L}" x2="${W-R}" y1="${ys(v)}" y2="${ys(v)}"/><text class="ax" x="${L-6}" y="${ys(v)+4}" text-anchor="end">${metric==='sp'?nf(v):nf(v)}</text>`});
+  MESI.forEach((m,i)=>{g+=`<text class="ax" x="${L+gw*i+gw/2}" y="${H-8}" text-anchor="middle">${m}</text>`});
+  series.forEach((s,si)=>{s.v.forEach((v,i)=>{if(!v)return;const x=L+gw*i+gw/2+(si-1)*(bw+1)-bw/2,y=ys(v);const op=s.y===selYear?1:.55;g+=`<rect x="${x}" y="${y}" width="${bw}" height="${T+ph-y}" rx="2" style="fill:${YC[s.y]};opacity:${op}"><title>${cap(MESI_L[i])} ${s.y}: ${metric==='sp'?eur(v):nf(v)+' ballini'}</title></rect>`})});
+  if(showTemp){
+    const tmax=30,tx=v=>T+ph-v/tmax*ph;let pts=[];
+    for(let m=0;m<12;m++){const tv=tempOf(selYear,m);if(tv!==null)pts.push([L+gw*m+gw/2,tx(tv),tv,m])}
+    [0,10,20,30].forEach(v=>{g+=`<text class="axe" x="${W-R+6}" y="${tx(v)+4}">${v}°</text>`});
+    let seg=[];const flush=()=>{if(seg.length>1)g+=`<polyline fill="none" stroke="var(--ember)" stroke-width="2" stroke-linejoin="round" points="${seg.map(p=>p[0]+','+p[1]).join(' ')}"/>`;seg=[]};
+    for(let m=0;m<12;m++){const p=pts.find(q=>q[3]===m);if(p)seg.push(p);else flush()}flush();
+    pts.forEach(p=>{g+=`<circle cx="${p[0]}" cy="${p[1]}" r="3.5" style="fill:var(--surface);stroke:var(--ember);stroke-width:2"><title>T media ${MESI_L[p[3]]} ${selYear}: ${nf(p[2],1)}°C</title></circle>`});
+  }
+  el.innerHTML=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Grafico mensile a barre per anno">${g}</svg>`;
+  $('#legend1').innerHTML=YEARS.map(y=>`<span><i style="background:${YC[y]}"></i>${y}</span>`).join('')+(showTemp?`<span><i class="ln" style="background:var(--ember)"></i>T media ${selYear}</span>`:'');
+  $('#mTitle').textContent=metric==='bal'?'Ballini al mese':'Spesa al mese (€)';
+}
+function priceChanges(){const last={},out=[];recs.forEach(r=>{if(last[r.t]!==undefined&&last[r.t]!==r.c)out.push({d:r.d,t:r.t,from:last[r.t],to:r.c});last[r.t]=r.c});return out.slice(-3).reverse()}
+function renderPanoramica(){
+  renderYearSeg();renderKpis();chart1();
+  const rec=[...recs].reverse().slice(0,6);
+  $('#recent').innerHTML=rec.map(r=>`<div class="row"><div><div class="t">${fd(r.d)}</div><div class="s">${esc(label(r.t))} · ${eur(r.c)}/ballino</div></div><div class="n"><div class="t">${r.b} ballini</div><div class="s">${eur(spesa(r))}</div></div></div>`).join('');
+  const last=recs[recs.length-1],ago=Math.round((new Date(TODAY_ISO+'T00:00')-new Date(last.d+'T00:00'))/864e5);
+  const pc=priceChanges();
+  const g=giacenza(),ro=runOut(g);
+  const ico='<svg viewBox="0 0 24 24"><path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9L1.8 18a2 2 0 001.7 3h17a2 2 0 001.7-3L13.7 3.9a2 2 0 00-3.4 0z"/></svg>';
+  $('#pAlerts').innerHTML=`<div class="card-head"><div><h2>Da tenere d'occhio</h2></div><a class="btn sm" href="#scorte">Scorte</a></div>
+   <div class="big">${nf(Math.max(g,0))} <small>ballini in magazzino</small></div>
+   <div class="note" style="margin-top:4px">${ro?`Al ritmo della stagione ${lastFull()} bastano fino a circa il ${ro.toLocaleDateString('it-IT',{day:'numeric',month:'long'})}.`:'Scorta sufficiente oltre un anno.'}</div>
+   ${pc.map(p=>`<div class="alert">${ico}<span><b>${esc(label(p.t))}</b> da ${nf(p.from,2)} a ${nf(p.to,2)} €/ballino dal ${fd(p.d)}</span></div>`).join('')}
+   <div class="alert info">${ico}<span>Ultima registrazione il ${fd(last.d)} (${ago===0?'oggi':ago+' giorni fa'}).</span></div>`;
+}
+const lastFull=()=>YEARS.filter(y=>y<TODAY.getFullYear()).slice(-1)[0]||2025;
+
+/* ---------- Registro ---------- */
+function typesByRecency(){const m={};recs.forEach(r=>m[r.t]=r.d);return Object.keys(m).sort((a,b)=>m[b].localeCompare(m[a]))}
+function lastPrice(t){for(let i=recs.length-1;i>=0;i--)if(recs[i].t===t)return recs[i].c;return ''}
+function fillTipoSelects(){
+  const ts=typesByRecency(),keep=$('#fTipo').value,keepA=$('#aTipo').value;
+  $('#fTipo').innerHTML=ts.map(t=>`<option value="${esc(t)}">${esc(label(t))}</option>`).join('')+'<option value="__new">Altro pellet…</option>';
+  $('#aTipo').innerHTML=ts.map(t=>`<option value="${esc(t)}">${esc(label(t))}</option>`).join('');
+  if(keep&&[...$('#fTipo').options].some(o=>o.value===keep))$('#fTipo').value=keep;
+  if(keepA&&[...$('#aTipo').options].some(o=>o.value===keepA))$('#aTipo').value=keepA;
+  const ft=$('#fFiltroTipo'),kf=ft.value;ft.innerHTML='<option value="">Tutti</option>'+ts.map(t=>`<option value="${esc(t)}">${esc(label(t))}</option>`).join('');ft.value=kf;
+}
+function syncPrice(){const t=$('#fTipo').value;$('#newTipoWrap').hidden=t!=='__new';if(t!=='__new')$('#fCosto').value=lastPrice(t);updCalc()}
+function updCalc(){const b=+$('#fBal').value||0,c=+$('#fCosto').value||0;$('#calc').textContent=eur(b*c)}
+function renderTable(){
+  const fy=$('#fAnno').value,ft=$('#fFiltroTipo').value;
+  const prog={},rows=[];
+  recs.forEach(r=>{const y=yr(r.d);prog[y]=prog[y]||{s:0,b:0};prog[y].s+=spesa(r);prog[y].b+=r.b;rows.push({...r,ps:prog[y].s,pb:prog[y].b})});
+  let f=rows.filter(r=>(!fy||yr(r.d)===+fy)&&(!ft||r.t===ft)).reverse();
+  const tot=f.reduce((a,r)=>({b:a.b+r.b,s:a.s+spesa(r)}),{b:0,s:0});
+  $('#histSub').textContent=`${f.length} registrazioni · ${nf(tot.b)} ballini · ${eur(tot.s)}`;
+  const shown=f.slice(0,rowsShown);
+  $('#tbl').innerHTML=`<thead><tr><th>Data</th><th>Ora</th><th class="r">Ballini</th><th>Pellet</th><th class="r">€/ballino</th><th class="r">Spesa</th><th class="r">Progr. spesa ${fy||'anno'}</th><th class="r">Progr. ballini</th><th></th></tr></thead><tbody>`+
+   shown.map(r=>`<tr><td>${fd(r.d)}</td><td class="mut">${r.h||'–'}</td><td class="r">${r.b}</td><td><span class="tag">${esc(label(r.t))}</span></td><td class="r">${nf(r.c,2)}</td><td class="r">${eur(spesa(r))}</td><td class="r mut">${eur(r.ps)}</td><td class="r mut">${r.pb}</td><td class="r"><button type="button" class="btn sm" data-del="${r.id}">Elimina</button></td></tr>`).join('')+'</tbody>';
+  $('#more').hidden=f.length<=rowsShown;
+  $('#more').textContent=`Mostra altre ${Math.min(14,f.length-rowsShown)}`;
+  if(!f.length)$('#tbl').innerHTML='<tbody><tr><td class="mut">Nessuna registrazione con questi filtri.</td></tr></tbody>';
+}
+function renderEvents(){$('#events').innerHTML=[...events].sort((a,b)=>b.d.localeCompare(a.d)).map(e=>`<div class="ev"><time>${fd(e.d)}</time><span>${esc(e.n)}</span></div>`).join('')}
+function renderRegistro(){fillTipoSelects();renderTable();renderEvents()}
+
+/* ---------- Analisi ---------- */
+function chart2(){
+  const el=$('#chart2'),W=Math.max(el.clientWidth,280),H=250,L=44,R=14,T=14,B=26,pw=W-L-R,ph=H-T-B;
+  const ser=YEARS.map(y=>{const m=monthly(y).sp;const lim=y===TODAY.getFullYear()?TODAY.getMonth():11;let c=0;const pts=[];for(let i=0;i<=lim;i++){c+=m[i];pts.push(c)}return{y,pts}});
+  const {top,t}=niceTicks(Math.max(...ser.map(s=>s.pts[s.pts.length-1])));
+  const xs=i=>L+pw*(i/11),ys=v=>T+ph-v/top*ph;let g='';
+  t.forEach(v=>g+=`<line class="gl" x1="${L}" x2="${W-R}" y1="${ys(v)}" y2="${ys(v)}"/><text class="ax" x="${L-6}" y="${ys(v)+4}" text-anchor="end">${nf(v)}</text>`);
+  MESI.forEach((m,i)=>{if(W>420||i%2===0)g+=`<text class="ax" x="${xs(i)}" y="${H-8}" text-anchor="middle">${m}</text>`});
+  ser.forEach(s=>{g+=`<polyline fill="none" stroke="${YC[s.y]}" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round" points="${s.pts.map((v,i)=>xs(i)+','+ys(v)).join(' ')}"/>`;
+    const i=s.pts.length-1;g+=`<circle cx="${xs(i)}" cy="${ys(s.pts[i])}" r="4" style="fill:${YC[s.y]};stroke:var(--surface);stroke-width:2"><title>${s.y}: ${eur(s.pts[i],0)} a fine ${MESI_L[i]}</title></circle>`});
+  el.innerHTML=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Spesa progressiva per anno">${g}</svg>`;
+  $('#legend2').innerHTML=ser.map(s=>`<span><i class="ln" style="background:${YC[s.y]}"></i>${s.y} · ${eur(s.pts[s.pts.length-1],0)}</span>`).join('');
+}
+function chart3(){
+  const el=$('#chart3'),W=Math.max(el.clientWidth,280),H=250,L=40,R=14,T=14,B=38,pw=W-L-R,ph=H-T-B;
+  const pts=[];YEARS.forEach(y=>{const m=monthly(y).bal;for(let i=0;i<12;i++){const tv=tempOf(y,i);const full=!(y===TODAY.getFullYear()&&i>=TODAY.getMonth());if(tv!==null&&full&&(m[i]>0))pts.push({y,i,t:tv,b:m[i]})}});
+  const {top,t}=niceTicks(Math.max(...pts.map(p=>p.b)));
+  const xs=v=>L+pw*(v/30),ys=v=>T+ph-v/top*ph;let g='';
+  t.forEach(v=>g+=`<line class="gl" x1="${L}" x2="${W-R}" y1="${ys(v)}" y2="${ys(v)}"/><text class="ax" x="${L-6}" y="${ys(v)+4}" text-anchor="end">${nf(v)}</text>`);
+  [0,5,10,15,20,25,30].forEach(v=>g+=`<text class="ax" x="${xs(v)}" y="${T+ph+16}" text-anchor="middle">${v}°</text>`);
+  g+=`<text class="ax" x="${L+pw/2}" y="${H-4}" text-anchor="middle">Temperatura media del mese</text>`;
+  const n=pts.length,sx=pts.reduce((a,p)=>a+p.t,0),sy=pts.reduce((a,p)=>a+p.b,0),sxx=pts.reduce((a,p)=>a+p.t*p.t,0),sxy=pts.reduce((a,p)=>a+p.t*p.b,0);
+  const slope=(n*sxy-sx*sy)/(n*sxx-sx*sx),ic=(sy-slope*sx)/n;
+  const ra=Math.sqrt(Math.max(0,(n*sxy-sx*sy)**2/((n*sxx-sx*sx)*(n*pts.reduce((a,p)=>a+p.b*p.b,0)-sy*sy))));
+  const x0=4,x1=29,cl=v=>Math.max(0,v);
+  g+=`<line x1="${xs(x0)}" y1="${ys(cl(ic+slope*x0))}" x2="${xs(x1)}" y2="${ys(cl(ic+slope*x1))}" stroke="var(--muted)" stroke-width="1.5" stroke-dasharray="5 4"/>`;
+  pts.forEach(p=>g+=`<circle cx="${xs(p.t)}" cy="${ys(p.b)}" r="5" style="fill:${YC[p.y]};fill-opacity:.85;stroke:var(--surface);stroke-width:1.5"><title>${cap(MESI_L[p.i])} ${p.y}: ${nf(p.b)} ballini a ${nf(p.t,1)}°C</title></circle>`);
+  el.innerHTML=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Ballini al mese in funzione della temperatura">${g}</svg>`;
+  $('#legend3').innerHTML=YEARS.map(y=>`<span><i style="background:${YC[y]};border-radius:50%"></i>${y}</span>`).join('')+'<span><i class="ln" style="background:var(--muted)"></i>tendenza</span>';
+  $('#regr').innerHTML=`<span>In media ogni grado in piu' fa risparmiare circa <b>${nf(Math.abs(slope),1)} ballini al mese</b> (${n} mesi, correlazione ${nf(ra,2)}).</span>`;
+}
+function renderHeat(){
+  const ms=YEARS.map(y=>monthly(y)[tblMetric]);const mx=Math.max(...ms.flat());
+  const f=v=>tblMetric==='sp'?nf(v,0):nf(v);
+  let h='<thead><tr><th>Mese</th>'+YEARS.map(y=>`<th class="r">${y}</th>`).join('')+'<th class="r">T media '+YEARS.join(' / ')+'</th></tr></thead><tbody>';
+  for(let i=0;i<12;i++){h+=`<tr><td>${cap(MESI_L[i])}</td>`+YEARS.map((y,k)=>{const v=ms[k][i];const part=y===TODAY.getFullYear()&&i===TODAY.getMonth();return v?`<td class="c" style="background:color-mix(in srgb,var(--accent) ${Math.round(v/mx*38)}%,transparent)">${f(v)}${part?' *':''}</td>`:'<td class="c mut">–</td>'}).join('')+`<td class="r mut">${YEARS.map(y=>{const tv=tempOf(y,i);return tv===null?'–':nf(tv,1)}).join(' / ')}</td></tr>`}
+  h+='<tr><td><b>Totale</b></td>'+ms.map(a=>`<td class="c"><b>${f(a.reduce((x,y)=>x+y,0))}</b></td>`).join('')+'<td></td></tr></tbody>';
+  $('#heat').innerHTML=h;
+}
+function renderTypes(){
+  const m={};recs.forEach(r=>{const o=m[r.t]=m[r.t]||{b:0,s:0,first:r.d,last:r.d,lp:r.c};o.b+=r.b;o.s+=spesa(r);o.last=r.d;o.lp=r.c});
+  const rows=Object.entries(m).sort((a,b)=>b[1].b-a[1].b);
+  $('#types').innerHTML='<thead><tr><th>Pellet</th><th>Periodo</th><th class="r">Ballini</th><th class="r">Spesa</th><th class="r">Costo medio</th><th class="r">Ultimo prezzo</th></tr></thead><tbody>'+rows.map(([t,o])=>`<tr><td><span class="tag">${esc(label(t))}</span></td><td class="mut">${fd(o.first)} – ${fd(o.last)}</td><td class="r">${nf(o.b)}</td><td class="r">${eur(o.s,0)}</td><td class="r">${eur(o.s/o.b)}</td><td class="r">${eur(o.lp)}</td></tr>`).join('')+'</tbody>';
+}
+function renderAnalisi(){chart2();chart3();renderHeat();renderTypes()}
+
+/* ---------- Scorte ---------- */
+function giacenza(){if(!acquisti.length)return 0;const d0=acquisti.reduce((m,a)=>a.d<m?a.d:m,acquisti[0].d);const buy=acquisti.reduce((s,a)=>s+a.b,0);const used=recs.filter(r=>r.d>=d0).reduce((s,r)=>s+r.b,0);return buy-used}
+function runOut(g){const base=monthly(lastFull()).bal;let d=new Date(TODAY.getFullYear(),TODAY.getMonth(),TODAY.getDate()),rem=g;if(rem<=0)return d;for(let i=0;i<500;i++){const m=d.getMonth();rem-=base[m]/dim(lastFull(),m);if(rem<=0)return d;d.setDate(d.getDate()+1)}return null}
+function renderScorte(){
+  const g=giacenza(),buy=acquisti.reduce((s,a)=>s+a.b,0),ro=runOut(g);
+  $('#giac').innerHTML=`${nf(Math.max(g,0))} <small>ballini</small>`;
+  $('#giacBar').style.width=Math.max(0,Math.min(100,buy?g/buy*100:0))+'%';
+  $('#giacNote').textContent=`${nf(buy)} acquistati, ${nf(buy-g)} gia' registrati nel registro.`;
+  $('#runout').innerHTML=ro?`<span>Stima: con i consumi della stagione ${lastFull()} la scorta dura fino a circa il <b>${ro.toLocaleDateString('it-IT',{day:'numeric',month:'long',year:'numeric'})}</b>.</span>`:'<span>Con i consumi della stagione scorsa la scorta dura oltre un anno.</span>';
+  $('#acq').innerHTML='<thead><tr><th>Data</th><th>Pellet</th><th class="r">Ballini</th><th class="r">€/ballino</th><th class="r">Totale</th><th></th></tr></thead><tbody>'+[...acquisti].sort((a,b)=>b.d.localeCompare(a.d)).map((a,i)=>`<tr><td>${fd(a.d)}${a.ex?' <span class="tag">esempio</span>':''}</td><td><span class="tag">${esc(label(a.t))}</span></td><td class="r">${a.b}</td><td class="r">${nf(a.c,2)}</td><td class="r">${eur(a.b*a.c)}</td><td class="r"><button class="btn sm" type="button" data-acqdel="${a.d}|${a.t}|${a.b}">Elimina</button></td></tr>`).join('')+'</tbody>';
+}
+
+/* ---------- navigazione ---------- */
+const VIEWS=['panoramica','registro','analisi','scorte'];
+function route(){
+  const h=location.hash.replace('#','');const v=VIEWS.includes(h)?h:'panoramica';
+  VIEWS.forEach(x=>$('#v-'+x).hidden=x!==v);
+  $$('nav a').forEach(a=>{if(a.dataset.v===v)a.setAttribute('aria-current','page');else a.removeAttribute('aria-current')});
+  refresh(v);
+}
+function refresh(v){
+  v=v||(VIEWS.find(x=>!$('#v-'+x).hidden));
+  if(v==='panoramica')renderPanoramica();
+  if(v==='registro')renderRegistro();
+  if(v==='analisi')renderAnalisi();
+  if(v==='scorte')renderScorte();
+}
+let tt;function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('on');clearTimeout(tt);tt=setTimeout(()=>t.classList.remove('on'),2200)}
+
+/* ---------- eventi ---------- */
+$('#yearSeg').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;selYear=+b.dataset.y;renderPanoramica()});
+$('#metricSeg').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;metric=b.dataset.m;$$('#metricSeg button').forEach(x=>x.setAttribute('aria-pressed',x===b));chart1()});
+$('#tempBtn').addEventListener('click',e=>{showTemp=!showTemp;e.currentTarget.setAttribute('aria-pressed',showTemp);chart1()});
+$('#tblSeg').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;tblMetric=b.dataset.m;$$('#tblSeg button').forEach(x=>x.setAttribute('aria-pressed',x===b));renderHeat()});
+$('#goNew').addEventListener('click',()=>setTimeout(()=>$('#fBal').focus(),50));
+$('#fTipo').addEventListener('change',syncPrice);
+['#fBal','#fCosto'].forEach(s=>$(s).addEventListener('input',updCalc));
+$('#bMinus').addEventListener('click',()=>{$('#fBal').value=Math.max(1,(+$('#fBal').value||1)-1);updCalc()});
+$('#bPlus').addEventListener('click',()=>{$('#fBal').value=(+$('#fBal').value||0)+1;updCalc()});
+$('#fAnno').addEventListener('change',()=>{rowsShown=14;renderTable()});
+$('#fFiltroTipo').addEventListener('change',()=>{rowsShown=14;renderTable()});
+$('#more').addEventListener('click',()=>{rowsShown+=14;renderTable()});
+$('#form').addEventListener('submit',e=>{
+  e.preventDefault();
+  const d=$('#fData').value,b=Math.round(+$('#fBal').value),c=+$('#fCosto').value;let t=$('#fTipo').value;
+  const err=m=>{$('#err').textContent=m};
+  if(!d)return err('Inserisci la data.');
+  if(!(b>=1))return err('Indica quanti ballini hai caricato (almeno 1).');
+  if(t==='__new'){t=$('#fNewTipo').value.trim().toLowerCase();if(!t)return err('Scrivi il nome del nuovo pellet.')}
+  if(!(c>0))return err('Inserisci il costo a ballino.');
+  err('');
+  recs.push({id:nextId++,d,h:$('#fOra').value||null,b,t,c});sortRecs();
+  const n=$('#fNota').value.trim();if(n)events.push({d,n});
+  $('#fNota').value='';$('#fNewTipo').value='';
+  fillTipoSelects();$('#fTipo').value=t;syncPrice();renderTable();renderEvents();
+  toast(`Registrazione salvata: ${b} ballini, ${eur(b*c)}`);
+});
+let delArm=null;
+$('#tbl').addEventListener('click',e=>{
+  const b=e.target.closest('[data-del]');if(!b)return;const id=+b.dataset.del;
+  if(delArm!==id){delArm=id;b.textContent='Conferma?';b.classList.add('primary');setTimeout(()=>{if(delArm===id){delArm=null;if(b.isConnected){b.textContent='Elimina';b.classList.remove('primary')}}},3000);return}
+  delArm=null;recs=recs.filter(r=>r.id!==id);renderTable();toast('Registrazione eliminata');
+});
+$('#aTipo').addEventListener('change',()=>{$('#aCosto').value=lastPrice($('#aTipo').value)});
+$('#formAcq').addEventListener('submit',e=>{
+  e.preventDefault();const d=$('#aData').value,b=Math.round(+$('#aBal').value),c=+$('#aCosto').value,t=$('#aTipo').value;
+  if(!d||!(b>=1)||!(c>0)){$('#aErr').textContent='Compila data, ballini e costo.';return}
+  $('#aErr').textContent='';acquisti=acquisti.filter(a=>!a.ex);acquisti.push({d,b,t,c});renderScorte();toast('Acquisto aggiunto');
+});
+let acqArm=null;
+$('#acq').addEventListener('click',e=>{const b=e.target.closest('[data-acqdel]');if(!b)return;const k=b.dataset.acqdel;
+  if(acqArm!==k){acqArm=k;b.textContent='Conferma?';b.classList.add('primary');setTimeout(()=>{if(acqArm===k){acqArm=null;if(b.isConnected){b.textContent='Elimina';b.classList.remove('primary')}}},3000);return}
+  acqArm=null;const i=acquisti.findIndex(a=>a.d+'|'+a.t+'|'+a.b===k);if(i>=0)acquisti.splice(i,1);renderScorte();toast('Acquisto eliminato')});
+
+/* ---------- avvio ---------- */
+$('#fData').value=TODAY_ISO;$('#aData').value=TODAY_ISO;
+$('#fAnno').innerHTML='<option value="">Tutti</option>'+[...YEARS].reverse().map(y=>`<option value="${y}">${y}</option>`).join('');
+fillTipoSelects();$('#fTipo').value=recs[recs.length-1].t;$('#aTipo').value=recs[recs.length-1].t;syncPrice();$('#aCosto').value=lastPrice($('#aTipo').value);
+$('#impInfo').textContent=`${recs.length} registrazioni dei fogli 2024, 2025 e 2026.`;
+window.addEventListener('hashchange',route);
+let rt;window.addEventListener('resize',()=>{clearTimeout(rt);rt=setTimeout(()=>{if(!$('#v-panoramica').hidden)chart1();if(!$('#v-analisi').hidden){chart2();chart3()}},120)});
+route();
+</script>
+
+</body></html>
