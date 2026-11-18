@@ -36,7 +36,7 @@ create table if not exists public.stock_purchases (
 create table if not exists public.monthly_temperatures (
   id uuid primary key default gen_random_uuid(),
   owner_id uuid not null references auth.users(id) on delete cascade,
-  month text not null check (month ~ '^\\d{4}-\\d{2}$'),
+  month text not null check (month ~ '^[0-9]{4}-(0[1-9]|1[0-2])$'),
   avg_celsius numeric(5,2) not null,
   unique(owner_id, month)
 );
