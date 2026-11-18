@@ -7,7 +7,8 @@
     "dev": "vite --host 0.0.0.0",
     "build": "vite build",
     "preview": "vite preview --host 0.0.0.0",
-    "import:legacy": "node scripts/import-legacy.mjs"
+    "import:legacy": "node scripts/import-legacy.mjs",
+    "test": "node --test src/lib/stats.test.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.57.0",
