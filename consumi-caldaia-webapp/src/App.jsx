@@ -38,6 +38,9 @@ export default function App() {
   const [pending, setPending] = useState(() => loadOutbox().length);
   const [notice, setNotice] = useState('');
   const [email, setEmail] = useState('');
+  const [codeSent, setCodeSent] = useState(false);
+  const [code, setCode] = useState('');
+  const [busy, setBusy] = useState(false);
   const [todayISO, setToday] = useState(() => localISO());
   const dataRef = useRef(data);
   dataRef.current = data;
@@ -198,8 +201,24 @@ export default function App() {
 
   async function sendLoginLink(e) {
     e.preventDefault();
-    const { error } = await supabase.auth.signInWithOtp({ email, options: { emailRedirectTo: window.location.origin } });
-    setNotice(error ? `Accesso non riuscito: ${error.message}` : 'Ti abbiamo inviato un link di accesso via email. Aprilo su questo dispositivo.');
+    setBusy(true);
+    const { error } = await supabase.auth.signInWithOtp({ email: email.trim(), options: { emailRedirectTo: window.location.origin } });
+    setBusy(false);
+    if (error) {
+      setNotice(`Accesso non riuscito: ${error.message}`);
+      return;
+    }
+    setCodeSent(true);
+    setNotice('Ti abbiamo scritto una mail con un codice. Scrivilo qui sotto, senza aprire il link.');
+  }
+  // Su iPhone l'app sulla Home e Safari non condividono l'accesso: con il codice si entra direttamente nell'app.
+  async function verifyCode(e) {
+    e.preventDefault();
+    setBusy(true);
+    const { error } = await supabase.auth.verifyOtp({ email: email.trim(), token: code.replace(/\s/g, ''), type: 'email' });
+    setBusy(false);
+    if (error) setNotice(`Codice non valido o scaduto: ${error.message}`);
+    else setNotice('');
   }
   async function logout() {
     if (loadOutbox().some(i => i.owner_id === user.id)) {
@@ -237,11 +256,19 @@ export default function App() {
         <div className="gate-card">
           <div className="brand-mark"><Flame size={20} /></div>
           <h1>Consumi Caldaia</h1>
-          <p>Accedi con la tua email: ti arriva un link, non serve nessuna password.</p>
-          <form onSubmit={sendLoginLink}>
-            <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="La tua email" autoComplete="email" required />
-            <button className="primary" type="submit">Inviami il link</button>
-          </form>
+          <p>Accedi con la tua email: ti arriva un codice, non serve nessuna password.</p>
+          {!codeSent ? (
+            <form onSubmit={sendLoginLink}>
+              <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="La tua email" autoComplete="email" required />
+              <button className="primary" type="submit" disabled={busy}>Inviami il codice</button>
+            </form>
+          ) : (
+            <form onSubmit={verifyCode}>
+              <input value={code} onChange={e => setCode(e.target.value)} placeholder="Codice ricevuto per email" inputMode="numeric" autoComplete="one-time-code" pattern="[0-9 ]{6,10}" required autoFocus />
+              <button className="primary" type="submit" disabled={busy}>Entra</button>
+              <button className="text-btn" type="button" onClick={() => { setCodeSent(false); setCode(''); }}>Cambia email o richiedi un nuovo codice</button>
+            </form>
+          )}
           {notice && <div className="notice" role="status">{notice}<button onClick={() => setNotice('')} aria-label="Chiudi">×</button></div>}
         </div>
       </div>
