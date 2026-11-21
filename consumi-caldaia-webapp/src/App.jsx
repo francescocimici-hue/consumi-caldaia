@@ -284,7 +284,7 @@ export default function App() {
         {view === 'analisi' && data.records.length > 0 && (
           <>
             <Analisi records={data.records} temps={data.temps} todayISO={todayISO} />
-            <AnalisiIntervalli records={data.records} todayISO={todayISO} userId={user?.id} />
+            <AnalisiIntervalli records={data.records} purchases={data.purchases} todayISO={todayISO} userId={user?.id} />
           </>
         )}
         {view === 'scorte' && <Scorte records={data.records} purchases={data.purchases} onAdd={addPurchase} onRemove={removePurchase} todayISO={todayISO} />}

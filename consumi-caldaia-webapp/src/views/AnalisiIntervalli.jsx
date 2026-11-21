@@ -6,19 +6,22 @@ import { analyze, BASE_TEMP } from '../lib/degreeDays.js';
 import { fetchMissing } from '../lib/weather.js';
 import { loadDailyTemps, saveDailyTemps, isMissingTable } from '../lib/dailyTemps.js';
 import { LOCATION } from '../config.js';
-import { fmt, fmt1, fmt2, dateFmt } from '../lib/format.js';
+import { normalTemps, runOutForecast, typicalWinter, pastSeasons, seasonSoFar, avgCost } from '../lib/forecast.js';
+import { stockLevel } from '../lib/stats.js';
+import { fmt, fmt1, fmt2, euro0, euro, dateFmt } from '../lib/format.js';
 
 const fmt3 = n => new Intl.NumberFormat('it-IT', { minimumFractionDigits: 3, maximumFractionDigits: 3 }).format(n || 0);
 const tick = { fontSize: 11, fill: 'var(--muted)' };
 const box = { background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: 8, fontSize: 12, color: 'var(--fg)' };
 
 /** Analisi per intervallo tra due carichi: ballini in rapporto al freddo (gradi giorno) di quei giorni. */
-export default function AnalisiIntervalli({ records, todayISO, userId }) {
+export default function AnalisiIntervalli({ records, purchases = [], todayISO, userId }) {
   const [daily, setDaily] = useState([]);
   const [status, setStatus] = useState({ kind: '', text: '' });
   const [busy, setBusy] = useState(false);
   const [base, setBase] = useState(BASE_TEMP);
   const [tableMissing, setTableMissing] = useState(false);
+  const [open, setOpen] = useState(false);
 
   useEffect(() => {
     let alive = true;
@@ -37,6 +40,19 @@ export default function AnalisiIntervalli({ records, todayISO, userId }) {
   }, []);
 
   const result = useMemo(() => analyze(records, daily, { base }), [records, daily, base]);
+  const summary = useMemo(() => {
+    const m = result.model;
+    if (!m || !daily.length) return null;
+    const normal = normalTemps(daily);
+    const { stock } = stockLevel(records, purchases);
+    return {
+      run: purchases.length ? { stock, ...runOutForecast(stock, todayISO, m, daily, normal, base) } : null,
+      typical: typicalWinter(m, normal, base),
+      seasons: pastSeasons(records, daily, m, base, normal, todayISO),
+      sofar: seasonSoFar(records, daily, m, base, normal, todayISO),
+      cost: avgCost(records, todayISO)
+    };
+  }, [result, daily, records, purchases, todayISO, base]);
   const first = useMemo(() => records.reduce((m, r) => (!m || r.date < m ? r.date : m), ''), [records]);
 
   const update = useCallback(async () => {
@@ -90,6 +106,60 @@ export default function AnalisiIntervalli({ records, todayISO, userId }) {
 
       {!tableMissing && !hasWinter && <p className="empty">Premi «Aggiorna temperature» per scaricare le temperature giornaliere da ottobre ad aprile, dal primo carico a oggi.</p>}
 
+      {summary && (
+        <div className="stack" style={{ marginTop: 14 }}>
+          <div className="kpi" style={{ gap: 6 }}>
+            <span>Quanto dura la scorta</span>
+            {summary.run ? (
+              summary.run.stock <= 0 ? (
+                <p style={{ margin: 0 }}>Dai tuoi dati la scorta risulta esaurita: registra l'ultimo acquisto in Scorte.</p>
+              ) : (
+                <p style={{ margin: 0 }}>
+                  Con il freddo di questi giorni consumi circa <b>{fmt1(summary.run.rateNow)} ballini al giorno</b>. I tuoi {fmt(Math.round(summary.run.stock))} ballini bastano {summary.run.date ? <>fino al <b>{dateFmt(summary.run.date)}</b>, circa {summary.run.days} giorni</> : <>per più di un anno</>}, supponendo temperature nella norma da qui in avanti.
+                </p>
+              )
+            ) : (
+              <p style={{ margin: 0 }}>Per sapere quanto dura la scorta registra gli acquisti di pellet nella sezione Scorte.</p>
+            )}
+          </div>
+
+          <div className="kpi" style={{ gap: 6 }}>
+            <span>Quanto servirà in un inverno</span>
+            <p style={{ margin: 0 }}>
+              Un inverno con temperature normali, da ottobre ad aprile, richiede circa <b>{fmt(Math.round(summary.typical))} ballini</b>
+              {summary.cost ? <>, cioè circa <b>{euro0(summary.typical * summary.cost)}</b> al prezzo medio dell'ultimo anno ({euro(summary.cost)} al ballino)</> : null}.
+            </p>
+            {summary.seasons.length > 0 && (
+              <small>Inverni passati: {summary.seasons.map(x => `${x.label} → ${fmt(Math.round(x.real))} ballini`).join(' · ')}.</small>
+            )}
+          </div>
+
+          {summary.sofar && (
+            <div className="kpi" style={{ gap: 6 }}>
+              <span>{summary.sofar.inSeason ? 'Questa stagione finora' : `Stagione ${summary.sofar.label}`}</span>
+              <p style={{ margin: 0 }}>
+                Dal {dateFmt(summary.sofar.from)} al {dateFmt(summary.sofar.to)} hai caricato <b>{fmt(Math.round(summary.sofar.real))} ballini</b>; per il freddo che ha fatto ne servivano circa <b>{fmt(Math.round(summary.sofar.expected))}</b>.{' '}
+                {summary.sofar.pct > 15
+                  ? <b style={{ color: 'var(--danger)' }}>Stai consumando circa il {fmt(Math.round(summary.sofar.pct))}% in più del previsto: se continua, può valere la pena far controllare la caldaia.</b>
+                  : summary.sofar.pct < -15
+                    ? <b>Stai consumando circa il {fmt(Math.round(-summary.sofar.pct))}% in meno del previsto.</b>
+                    : <b>È in linea con il previsto.</b>}
+              </p>
+              <small>Si contano i giorni fino all'ultimo carico registrato; un carico in più o in meno sposta il dato di qualche ballino.</small>
+            </div>
+          )}
+        </div>
+      )}
+
+      {!model && hasWinter && <p className="empty">Servono almeno 4 intervalli con temperature complete per stimare i consumi.</p>}
+
+      {model && (
+        <button type="button" className="text-btn" style={{ marginTop: 10 }} onClick={() => setOpen(o => !o)} aria-expanded={open}>
+          {open ? 'Nascondi i dettagli' : "Approfondisci l'analisi"}
+        </button>
+      )}
+      {open && (
+        <>
       {model ? (
         <>
           <div className="kpis" style={{ marginTop: 14 }}>
@@ -130,7 +200,7 @@ export default function AnalisiIntervalli({ records, todayISO, userId }) {
                     <td>{i.gg === null ? '—' : fmt(Math.round(i.gg))}</td>
                     <td>{fmt1(i.bags)}</td>
                     <td>{i.expected === null ? '—' : fmt1(i.expected)}</td>
-                    <td style={i.deviationPct !== null && Math.abs(i.deviationPct) >= 25 ? { color: 'var(--danger)', fontWeight: 600 } : undefined}>
+                    <td style={i.deviationPct !== null && i.deviationPct >= 25 ? { color: 'var(--danger)', fontWeight: 600 } : undefined}>
                       {i.deviationPct === null ? 'dati insufficienti' : `${i.deviationPct > 0 ? '+' : ''}${fmt(Math.round(i.deviationPct))}%`}
                     </td>
                   </tr>
@@ -151,6 +221,8 @@ export default function AnalisiIntervalli({ records, todayISO, userId }) {
         Il consumo di ogni intervallo si confronta con quello previsto dal freddo dei giorni trascorsi. Un grande scostamento in più può indicare una pulizia da fare o un cambio di abitudini.
         La stima usa la temperatura esterna con una soglia fissa; finché non registri anche i gradi impostati in casa, non può dire quanto costa un grado in più dentro.
       </p>
+        </>
+      )}
       <p className="note">Dati meteo: <a href="https://open-meteo.com/" target="_blank" rel="noreferrer">Open-Meteo.com</a> (CC BY 4.0). Si scaricano solo i mesi da ottobre ad aprile.</p>
     </div>
   );
