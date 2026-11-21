@@ -4,6 +4,7 @@ import Panoramica from './views/Panoramica.jsx';
 import Registro from './views/Registro.jsx';
 import Analisi from './views/Analisi.jsx';
 import Scorte from './views/Scorte.jsx';
+import AnalisiIntervalli from './views/AnalisiIntervalli.jsx';
 import { supabase, loadDemo, fetchAll, flushOutbox, applyOutbox, readCache, writeCache, clearCache, loadOutbox, saveOutbox, isNetworkError } from './lib/data.js';
 import { newId } from './lib/sync.js';
 import { localISO } from './lib/stats.js';
@@ -280,7 +281,12 @@ export default function App() {
         {view === 'analisi' && !data.records.length && <Vuoto onGo={setView} />}
         {view === 'panoramica' && data.records.length > 0 && <Panoramica records={data.records} temps={data.temps} purchases={data.purchases} todayISO={todayISO} onGo={setView} />}
         {view === 'registro' && <Registro records={data.records} events={data.events} onAdd={addRecord} onRemove={removeRecord} todayISO={todayISO} />}
-        {view === 'analisi' && data.records.length > 0 && <Analisi records={data.records} temps={data.temps} todayISO={todayISO} />}
+        {view === 'analisi' && data.records.length > 0 && (
+          <>
+            <Analisi records={data.records} temps={data.temps} todayISO={todayISO} />
+            <AnalisiIntervalli records={data.records} todayISO={todayISO} userId={user?.id} />
+          </>
+        )}
         {view === 'scorte' && <Scorte records={data.records} purchases={data.purchases} onAdd={addPurchase} onRemove={removePurchase} todayISO={todayISO} />}
       </main>
       <nav className="tabbar" aria-label="Sezioni">
@@ -301,4 +307,3 @@ function Vuoto({ onGo }) {
     </section>
   );
 }
-
